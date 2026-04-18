@@ -105,7 +105,7 @@ npm run dev
 ## Rollout
 
 1. **Staging**: Bridge-Plugin + Service + Propstack-Webhook auf Staging.
-2. **Soft-HMAC**: `HMAC_ENFORCE=false`, erster Webhook wird geloggt → Signatur-Format verifizieren.
+2. **Soft-HMAC**: Fehlender `X-Propstack-Signature`-Header wird geloggt und durchgelassen; liegt er vor, aber matcht nicht, gibt es 401.
 3. **Dry-Run**: `DRY_RUN=true` testen, Mapping kontrollieren.
 4. **Full-Sync**: `POST /sync/full` mit `X-Admin-Key`.
 5. **Live-Switch**: Plugin auf Live installieren, ENV-Vars umstellen, Webhook umbiegen, HMAC enforce aktivieren.
