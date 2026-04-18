@@ -423,17 +423,17 @@ tandel-propstack-sync/
 
 ```env
 # Propstack
-PROPSTACK_API_KEY=nVqlPh9bChmmYf2OugnG3X85u05v-wa6NNRkXrTv
-PROPSTACK_WEBHOOK_SECRET=<min 32 Zeichen>
+PROPSTACK_API_KEY=<PROPSTACK_API_KEY>
+PROPSTACK_WEBHOOK_SECRET=<PROPSTACK_WEBHOOK_SECRET>  # min 32 Zeichen
 
 # WordPress Bridge-Plugin
 WP_BRIDGE_URL=https://tandel.immobilien/wp-json/tandel/v1/sync
 WP_BRIDGE_DELETE_URL=https://tandel.immobilien/wp-json/tandel/v1/sync/delete
-WP_BRIDGE_API_KEY=<gleicher Key wie TANDEL_SYNC_API_KEY in wp-config.php>
+WP_BRIDGE_API_KEY=<WP_BRIDGE_API_KEY>  # gleicher Key wie TANDEL_SYNC_API_KEY in wp-config.php
 
 # Supabase (für Mapping-Tabelle + Logging)
 SUPABASE_URL=https://ctucmljvatphzgnfhycu.supabase.co
-SUPABASE_KEY=<anon oder service_role key>
+SUPABASE_KEY=<SUPABASE_SERVICE_ROLE_KEY>
 
 # Service
 PORT=3000
