@@ -13,7 +13,6 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 
-  DRY_RUN: z.coerce.boolean().default(false),
   SYNC_FULL_API_KEY: z.string().min(16).optional(),
 });
 
