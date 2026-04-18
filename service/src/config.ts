@@ -6,11 +6,8 @@ const schema = z.object({
   PROPSTACK_API_BASE: z.string().url().default('https://api.propstack.de/v1'),
   PROPSTACK_WEBHOOK_SECRET: z.string().min(16),
 
-  WP_BRIDGE_BASE_URL: z.string().url(),
+  WP_BRIDGE_URL: z.string().url(),
   WP_BRIDGE_API_KEY: z.string().min(16),
-
-  SUPABASE_URL: z.string().url(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

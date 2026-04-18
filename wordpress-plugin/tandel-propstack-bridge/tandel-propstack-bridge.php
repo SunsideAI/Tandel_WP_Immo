@@ -45,7 +45,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => 'tandel_check_api_key',
     ]);
 
-    register_rest_route('tandel/v1', '/sync-images', [
+    register_rest_route('tandel/v1', '/sync/images', [
         'methods'             => 'POST',
         'callback'            => 'tandel_handle_sync_images',
         'permission_callback' => 'tandel_check_api_key',
