@@ -1,11 +1,8 @@
-import { getConfig } from '../config';
 import { logger } from '../utils/logger';
 import { getUnit } from './propstack';
 import { syncPost, syncImages, syncDelete } from './wordpress-bridge';
 import { toBridgePayload, toImagePayload } from './mapper';
 import { recordResult } from './stats';
-
-const config = getConfig();
 
 /**
  * Per-propstack-id in-process lock to prevent two concurrent webhook
@@ -44,12 +41,10 @@ export async function syncProperty(propstackId: number): Promise<void> {
       const message = err instanceof Error ? err.message : String(err);
       if (message.includes('404')) {
         log.info('Propstack returned 404 - treating as delete');
-        if (!config.DRY_RUN) {
-          try {
-            await syncDelete(propstackId);
-          } catch (delErr) {
-            log.warn({ err: delErr }, 'Delete call to bridge failed');
-          }
+        try {
+          await syncDelete(propstackId);
+        } catch (delErr) {
+          log.warn({ err: delErr }, 'Delete call to bridge failed');
         }
         recordResult('success');
         return;
@@ -59,11 +54,6 @@ export async function syncProperty(propstackId: number): Promise<void> {
 
     if (unit.archived) {
       log.info('Unit archived in Propstack - setting WP post to draft');
-      if (config.DRY_RUN) {
-        log.info('[DRY_RUN] would delete');
-        recordResult('success');
-        return;
-      }
       await syncDelete(propstackId);
       recordResult('success');
       return;
@@ -71,12 +61,6 @@ export async function syncProperty(propstackId: number): Promise<void> {
 
     const payload = toBridgePayload(unit);
     const imagePayload = toImagePayload(unit);
-
-    if (config.DRY_RUN) {
-      log.info({ payload, image_count: imagePayload.images.length }, '[DRY_RUN] would sync');
-      recordResult('success');
-      return;
-    }
 
     // Stage 1: post + ACF fields (fast)
     const result = await syncPost(payload);
