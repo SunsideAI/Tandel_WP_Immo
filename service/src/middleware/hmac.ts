@@ -27,9 +27,10 @@ export function verifyHmac(body: Buffer, signature: string, secret: string): boo
 }
 
 /**
- * Soft HMAC check: in non-enforce mode, mismatches are logged as warnings
- * but the request still proceeds. Flip HMAC_ENFORCE=true once Propstack's
- * real signature format is confirmed in production logs.
+ * Soft HMAC check:
+ *   - No signature header -> log warning, let the request through.
+ *   - Signature present but invalid -> reject with 401.
+ *   - Signature present and valid -> pass through.
  */
 export function propstackHmac(req: Request, res: Response, next: NextFunction): void {
   const signature = req.header('X-Propstack-Signature');
@@ -42,25 +43,15 @@ export function propstackHmac(req: Request, res: Response, next: NextFunction): 
   }
 
   if (!signature) {
-    if (config.HMAC_ENFORCE) {
-      logger.warn('HMAC signature missing, rejecting');
-      res.status(401).json({ error: 'Missing signature' });
-      return;
-    }
-    logger.warn('HMAC signature missing - proceeding (soft mode)');
+    logger.warn('No HMAC signature - allowing (soft-check)');
     next();
     return;
   }
 
-  const valid = verifyHmac(body, signature, config.PROPSTACK_WEBHOOK_SECRET);
-
-  if (!valid) {
-    if (config.HMAC_ENFORCE) {
-      logger.warn({ signature }, 'HMAC mismatch - rejecting');
-      res.status(401).json({ error: 'Invalid signature' });
-      return;
-    }
-    logger.warn({ signature }, 'HMAC mismatch - proceeding (soft mode)');
+  if (!verifyHmac(body, signature, config.PROPSTACK_WEBHOOK_SECRET)) {
+    logger.warn({ signature }, 'HMAC mismatch - rejecting');
+    res.status(401).json({ error: 'Invalid signature' });
+    return;
   }
 
   next();

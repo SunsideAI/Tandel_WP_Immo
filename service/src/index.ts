@@ -28,7 +28,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 const server = app.listen(config.PORT, () => {
   logger.info(
-    { port: config.PORT, env: config.NODE_ENV, dry_run: config.DRY_RUN, hmac_enforce: config.HMAC_ENFORCE },
+    { port: config.PORT, env: config.NODE_ENV, dry_run: config.DRY_RUN },
     'tandel-propstack-sync started',
   );
 });
