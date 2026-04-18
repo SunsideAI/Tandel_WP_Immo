@@ -14,7 +14,6 @@ export const logger = pino({
       'req.headers["x-propstack-signature"]',
       '*.PROPSTACK_API_KEY',
       '*.WP_BRIDGE_API_KEY',
-      '*.SUPABASE_SERVICE_ROLE_KEY',
     ],
     censor: '[REDACTED]',
   },

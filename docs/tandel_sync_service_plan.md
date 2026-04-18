@@ -428,12 +428,7 @@ PROPSTACK_WEBHOOK_SECRET=<PROPSTACK_WEBHOOK_SECRET>  # min 32 Zeichen
 
 # WordPress Bridge-Plugin
 WP_BRIDGE_URL=https://tandel.immobilien/wp-json/tandel/v1/sync
-WP_BRIDGE_DELETE_URL=https://tandel.immobilien/wp-json/tandel/v1/sync/delete
 WP_BRIDGE_API_KEY=<WP_BRIDGE_API_KEY>  # gleicher Key wie TANDEL_SYNC_API_KEY in wp-config.php
-
-# Supabase (für Mapping-Tabelle + Logging)
-SUPABASE_URL=https://ctucmljvatphzgnfhycu.supabase.co
-SUPABASE_KEY=<SUPABASE_SERVICE_ROLE_KEY>
 
 # Service
 PORT=3000
@@ -478,7 +473,7 @@ Das Plugin überschreibt einfach die Einstellung zur Laufzeit.
 | Propstack API Client | 1h |
 | Mapper (Propstack → Bridge-Payload) | 2h |
 | Full-Sync Endpoint | 1h |
-| Error Handling + Logging + Supabase | 1.5h |
+| Error Handling + Logging | 1.5h |
 | Testing | 1.5h |
 | **Gesamt** | **~15-16h** |
 
