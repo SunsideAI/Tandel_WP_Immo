@@ -1,86 +1,103 @@
+import type { LabeledValue } from '../utils/propstack';
+
 /**
- * Minimal Propstack unit type - only fields we currently read.
- * Propstack actually returns many more fields; we keep this loose with `unknown`
- * for the rest so the mapper can access them without the whole schema.
+ * Propstack webhook body / unit payload.
+ *
+ * Grundsatz:
+ *   - Flache Felder stehen direkt als primitiver Wert.
+ *   - Alle anderen Felder sind `{label, value}` gewrappt.
+ *
+ * Wir vereinheitlichen den Lesezugriff ueber `extractValue()` aus
+ * `utils/propstack.ts`. Das hier ist eine pragmatische Typisierung -
+ * die Realitaet bei Propstack ist breiter, wir modellieren nur was wir nutzen.
  */
+
+type Maybe<T> = T | LabeledValue<T>;
+
 export interface PropstackUnit {
+  // --- FLACHE FELDER ---
   id: number;
   unit_id?: string;
-  title?: string;
-
-  // Adresse
   city?: string;
   zip_code?: string;
   street?: string;
   house_number?: string;
-  hide_address?: boolean;
-  address?: string;
-
-  // Typisierung
-  object_type?: 'LIVING' | 'COMMERCIAL' | 'INVESTMENT' | string;
+  country?: string;
+  rs_type?: string;
   rs_category?: string;
+  object_type?: 'LIVING' | 'COMMERCIAL' | 'INVESTMENT' | string;
   marketing_type?: 'RENT' | 'BUY' | string;
-
-  // Größe & Zustand
-  number_of_rooms?: number | string;
-  living_space?: number;
-  usable_floor_space?: number;
-  plot_area?: number;
-  number_of_floors?: number | string;
-  construction_year?: number | string;
-  free_from?: string;
-
-  // Preise
-  base_rent?: number;
-  service_charge?: number;
-  heating_costs?: number;
-  heating_costs_in_service_charge?: boolean;
-  total_rent?: number;
-  price?: number;
-  deposit?: number;
-
-  // Ausstattung (Zimmer)
-  number_of_bed_rooms?: number | string;
-  number_of_bath_rooms?: number | string;
-
-  // Ausstattung Booleans
-  balcony?: boolean;
-  guest_toilet?: boolean;
-  garden?: boolean;
-  built_in_kitchen?: boolean;
-  cellar?: boolean;
-  lift?: boolean;
-  barrier_free?: boolean;
-  flat_share_suitable?: boolean;
-  storeroom?: boolean;
-  loggia?: boolean;
-
-  // Bodenbelag
-  flooring_type?: { value?: string[] };
-
-  // Energie
-  heating_type?: string;
-  energy_efficiency_class?: string;
-  energy_efficiency_value?: number;
-
-  // Provision
-  courtage?: string;
-  courtage_note?: string;
-
-  // Beschreibungen
-  description_note?: string;
-  furnishing_note?: string;
-  location_note?: string;
-  other_note?: string;
-
-  // Status (Propstack property_status ID)
-  property_status_id?: number;
   archived?: boolean;
+  project_id?: number;
+  broker_id?: number;
+  address?: string;
+  short_address?: string;
+  name?: string;
+  created_at?: string;
+  updated_at?: string;
 
-  // Bilder
+  /** Status-Objekt, nicht gewrappt. Beispiel: `{id: 254061, name: 'Vermarktung'}` */
+  property_status?: { id: number; name?: string };
+
+  /** Bilder: Array von Objekten direkt im Root (flache Sub-Objekte). */
   images?: PropstackImage[];
 
-  // Rest der Felder, die wir noch nicht explizit typisiert haben
+  // --- GEWRAPPTE FELDER ({label, value}) ---
+  title?: Maybe<string>;
+
+  // Groesse & Zustand
+  number_of_rooms?: Maybe<number | string>;
+  living_space?: Maybe<number>;
+  usable_floor_space?: Maybe<number>;
+  plot_area?: Maybe<number>;
+  number_of_floors?: Maybe<number | string>;
+  construction_year?: Maybe<number | string>;
+  free_from?: Maybe<string>;
+  hide_address?: Maybe<boolean>;
+
+  // Preise
+  base_rent?: Maybe<number>;
+  service_charge?: Maybe<number>;
+  heating_costs?: Maybe<number>;
+  heating_costs_in_service_charge?: Maybe<boolean>;
+  total_rent?: Maybe<number>;
+  price?: Maybe<number>;
+  deposit?: Maybe<number>;
+
+  // Zimmer (Ausstattung)
+  number_of_bed_rooms?: Maybe<number | string>;
+  number_of_bath_rooms?: Maybe<number | string>;
+
+  // Ausstattungs-Booleans
+  balcony?: Maybe<boolean>;
+  guest_toilet?: Maybe<boolean>;
+  garden?: Maybe<boolean>;
+  built_in_kitchen?: Maybe<boolean>;
+  cellar?: Maybe<boolean>;
+  lift?: Maybe<boolean>;
+  barrier_free?: Maybe<boolean>;
+  flat_share_suitable?: Maybe<boolean>;
+  storeroom?: Maybe<boolean>;
+  loggia?: Maybe<boolean>;
+
+  flooring_type?: Maybe<string[]>;
+
+  // Energie
+  heating_type?: Maybe<string>;
+  energy_efficiency_class?: Maybe<string>;
+  energy_efficiency_value?: Maybe<number>;
+
+  // Provision
+  courtage?: Maybe<string>;
+  courtage_note?: Maybe<string>;
+
+  // Beschreibungen
+  description_note?: Maybe<string>;
+  furnishing_note?: Maybe<string>;
+  location_note?: Maybe<string>;
+  other_note?: Maybe<string>;
+
+  // alles andere
   [key: string]: unknown;
 }
 
@@ -94,10 +111,4 @@ export interface PropstackImage {
   is_floorplan?: boolean;
   title?: string;
   position?: number;
-}
-
-export interface PropstackWebhookPayload {
-  event: 'property_created' | 'property_updated' | string;
-  data: { id: number; [key: string]: unknown };
-  changed_attributes?: string[];
 }

@@ -1,4 +1,5 @@
 import type { PropstackUnit } from '../types/propstack';
+import { extractValue } from '../utils/propstack';
 
 export const AUSSTATTUNG_BOOL_TO_ACF = {
   balcony: 'Balkon/Terrasse',
@@ -24,17 +25,19 @@ export const FLOORING_TO_ACF: Record<string, string> = {
 
 export function buildAusstattungsmerkmale(unit: PropstackUnit): string[] {
   const merkmale = new Set<string>();
+  const raw = unit as unknown as Record<string, unknown>;
 
+  // Boolean-Ausstattungsfelder sind bei Propstack {label, value}-gewrapped.
   for (const [psField, acfLabel] of Object.entries(AUSSTATTUNG_BOOL_TO_ACF)) {
-    if ((unit as Record<string, unknown>)[psField] === true) {
+    if (extractValue<boolean>(raw[psField]) === true) {
       merkmale.add(acfLabel);
     }
   }
 
-  const flooring = unit.flooring_type?.value;
+  const flooring = extractValue<string[]>(unit.flooring_type);
   if (Array.isArray(flooring)) {
-    for (const raw of flooring) {
-      const label = FLOORING_TO_ACF[raw.trim()];
+    for (const item of flooring) {
+      const label = FLOORING_TO_ACF[item.trim()];
       if (label) merkmale.add(label);
     }
   }

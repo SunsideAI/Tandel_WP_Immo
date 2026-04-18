@@ -13,21 +13,24 @@ import {
   STATUS_MAP,
 } from '../mappings/enums';
 import { buildAusstattungsmerkmale } from '../mappings/ausstattung';
+import { extractValue } from '../utils/propstack';
 
 /**
  * Build the Bridge sync payload (without images - see toImagePayload).
+ * Handles both flat and {label, value}-wrapped fields via extractValue().
  */
 export function toBridgePayload(unit: PropstackUnit): BridgeSyncPayload {
   const acf: Record<string, string | number | boolean | string[] | null> = {};
+  const raw = unit as unknown as Record<string, unknown>;
 
-  // 1:1 field mapping
+  // 1:1 field mapping - extractValue handles both flat and wrapped forms
   for (const [psField, acfField] of Object.entries(FIELD_MAP)) {
-    const raw = (unit as Record<string, unknown>)[psField];
-    if (raw === undefined || raw === null) continue;
-    acf[acfField] = raw as string | number | boolean;
+    const value = extractValue<string | number | boolean>(raw[psField]);
+    if (value === undefined || value === null) continue;
+    acf[acfField] = value;
   }
 
-  // Enum mappings
+  // Enum mappings - flat fields (no extraction needed)
   if (unit.object_type && OBJECT_TYPE_MAP[unit.object_type as keyof typeof OBJECT_TYPE_MAP]) {
     acf['gewerblich_wohnen'] = OBJECT_TYPE_MAP[unit.object_type as keyof typeof OBJECT_TYPE_MAP];
   }
@@ -39,24 +42,28 @@ export function toBridgePayload(unit: PropstackUnit): BridgeSyncPayload {
     if (haus) acf['haustypen'] = haus;
   }
 
-  if (unit.heating_type) {
-    const heizungsart = HEIZUNGSART_MAP[unit.heating_type];
+  // Enum mappings - wrapped fields
+  const heatingType = extractValue<string>(unit.heating_type);
+  if (heatingType) {
+    const heizungsart = HEIZUNGSART_MAP[heatingType];
     if (heizungsart) acf['heizungsart'] = heizungsart;
   }
 
-  if (unit.energy_efficiency_class) {
-    const effizienz = EFFIZIENZ_MAP[unit.energy_efficiency_class];
+  const effizienzClass = extractValue<string>(unit.energy_efficiency_class);
+  if (effizienzClass) {
+    const effizienz = EFFIZIENZ_MAP[effizienzClass];
     if (effizienz) acf['energieeffizienzklasse'] = effizienz;
   }
 
-  if (typeof unit.heating_costs_in_service_charge === 'boolean') {
+  const hkInNk = extractValue<boolean>(unit.heating_costs_in_service_charge);
+  if (typeof hkInNk === 'boolean') {
     acf['heizkosten_sind_in_nebenkosten_enthalten'] =
-      HK_IN_NK_MAP[String(unit.heating_costs_in_service_charge) as 'true' | 'false'];
+      HK_IN_NK_MAP[String(hkInNk) as 'true' | 'false'];
   }
 
   acf['ausstattungsmerkmale'] = buildAusstattungsmerkmale(unit);
 
-  // Categories
+  // Categories (flat fields)
   const categories: string[] = [];
   if (unit.marketing_type === 'RENT' || unit.marketing_type === 'BUY') {
     categories.push(MARKETING_TO_WP_CATEGORY[unit.marketing_type]);
@@ -66,20 +73,22 @@ export function toBridgePayload(unit: PropstackUnit): BridgeSyncPayload {
     if (objektart) categories.push(objektart);
   }
 
-  // Post status
+  // Post status: property_status is a flat object {id, name}
   let postStatus: 'publish' | 'draft' = 'draft';
   if (unit.archived) {
     postStatus = 'draft';
-  } else if (typeof unit.property_status_id === 'number') {
-    postStatus = STATUS_MAP[unit.property_status_id] ?? 'draft';
+  } else if (typeof unit.property_status?.id === 'number') {
+    postStatus = STATUS_MAP[unit.property_status.id] ?? 'draft';
   } else {
     postStatus = 'publish';
   }
 
+  const title = extractValue<string>(unit.title);
+
   return {
     propstack_id: unit.id,
     propstack_unit_id: unit.unit_id,
-    title: unit.title ?? `Propstack #${unit.id}`,
+    title: title ?? `Propstack #${unit.id}`,
     post_status: postStatus,
     acf_fields: acf,
     categories,
@@ -88,7 +97,7 @@ export function toBridgePayload(unit: PropstackUnit): BridgeSyncPayload {
 
 /**
  * Build the image payload for the second-stage sync-images call.
- * Prefers the largest URL available, falls back progressively.
+ * `images` at the Propstack root is a flat array - no label/value wrapper.
  */
 export function toImagePayload(unit: PropstackUnit): BridgeImageSyncPayload {
   const images = (unit.images ?? [])
