@@ -114,5 +114,5 @@ export function toImagePayload(unit: PropstackUnit): BridgeImageSyncPayload {
 }
 
 function pickImageUrl(img: PropstackImage): string | undefined {
-  return img.original ?? img.large ?? img.url ?? img.medium ?? img.small;
+  return img.big_url ?? img.original ?? img.large ?? img.url ?? img.medium_url ?? img.medium ?? img.small;
 }

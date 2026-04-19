@@ -104,6 +104,8 @@ export interface PropstackUnit {
 export interface PropstackImage {
   id: number;
   url?: string;
+  big_url?: string;
+  medium_url?: string;
   original?: string;
   large?: string;
   medium?: string;
