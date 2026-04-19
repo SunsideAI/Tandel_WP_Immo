@@ -106,6 +106,9 @@ export const REFERENZEN_STATUS_ID = 254063;
 export const REFERENZEN_CATEGORY = 'referenzen';
 export const KAPITALANLAGE_CATEGORY = 'kapitalanlage';
 
+/** Propstack property_status.id fuer "Abgeschlossen" - Objekt wird aus WP geloescht. */
+export const ABGESCHLOSSEN_STATUS_ID = 254063;
+
 /**
  * Liefert die Liste der WP-Kategorie-Slugs (Eltern + Unter + ggf. Referenzen).
  * Kategorien sind hierarchisch, wir setzen beide Ebenen explizit.
@@ -142,13 +145,12 @@ export function resolveWpCategories(input: {
 
 /**
  * Propstack property_status ID -> WordPress post_status.
- * 254061 Vermarktung, 254062 Reserviert, 254063 Abgeschlossen,
- * 254059 Akquise, 254060 Vorbereitung.
+ * 254061 Vermarktung, 254062 Reserviert, 254059 Akquise, 254060 Vorbereitung.
+ * 254063 Abgeschlossen wird separat behandelt (Delete, siehe ABGESCHLOSSEN_STATUS_ID).
  */
 export const STATUS_MAP: Record<number, 'publish' | 'draft'> = {
   254061: 'publish',
   254062: 'publish',
-  254063: 'publish',
   254059: 'draft',
   254060: 'draft',
 };

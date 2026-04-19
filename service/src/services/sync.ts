@@ -3,6 +3,7 @@ import { getUnit } from './propstack';
 import { syncPost, syncImages, syncDelete } from './wordpress-bridge';
 import { toBridgePayload, toImagePayload } from './mapper';
 import { recordResult } from './stats';
+import { ABGESCHLOSSEN_STATUS_ID } from '../mappings/enums';
 
 /**
  * Per-propstack-id in-process lock to prevent two concurrent webhook
@@ -53,7 +54,15 @@ export async function syncProperty(propstackId: number): Promise<void> {
     }
 
     if (unit.archived) {
-      log.info('Unit archived in Propstack - setting WP post to draft');
+      log.info('Unit archived in Propstack - deleting from WP');
+      await syncDelete(propstackId);
+      recordResult('success');
+      return;
+    }
+
+    // Abgeschlossen (254063) -> komplett aus WordPress loeschen
+    if (unit.property_status?.id === ABGESCHLOSSEN_STATUS_ID) {
+      log.info('Unit status Abgeschlossen - deleting from WP');
       await syncDelete(propstackId);
       recordResult('success');
       return;
