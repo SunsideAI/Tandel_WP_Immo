@@ -8,9 +8,8 @@ import {
   HEIZUNGSART_MAP,
   EFFIZIENZ_MAP,
   HK_IN_NK_MAP,
-  MARKETING_TO_WP_CATEGORY,
-  OBJEKTART_TO_WP_CATEGORY,
   STATUS_MAP,
+  resolveWpCategories,
 } from '../mappings/enums';
 import { buildAusstattungsmerkmale } from '../mappings/ausstattung';
 import { extractValue } from '../utils/propstack';
@@ -63,15 +62,13 @@ export function toBridgePayload(unit: PropstackUnit): BridgeSyncPayload {
 
   acf['ausstattungsmerkmale'] = buildAusstattungsmerkmale(unit);
 
-  // Categories (flat fields)
-  const categories: string[] = [];
-  if (unit.marketing_type === 'RENT' || unit.marketing_type === 'BUY') {
-    categories.push(MARKETING_TO_WP_CATEGORY[unit.marketing_type]);
-  }
-  if (unit.rs_category) {
-    const objektart = OBJEKTART_TO_WP_CATEGORY[unit.rs_category];
-    if (objektart) categories.push(objektart);
-  }
+  // Categories (flat fields). Hierarchisch: Eltern + Unter + ggf. Referenzen.
+  const categories = resolveWpCategories({
+    marketing_type: unit.marketing_type,
+    rs_type: unit.rs_type,
+    object_type: unit.object_type,
+    property_status_id: unit.property_status?.id,
+  });
 
   // Post status: property_status is a flat object {id, name}
   let postStatus: 'publish' | 'draft' = 'draft';
